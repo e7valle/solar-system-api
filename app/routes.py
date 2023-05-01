@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import abort, Blueprint, jsonify, request, make_response
 from app import db
 from app.models.solar_system import Planet
 
@@ -27,24 +27,42 @@ def get_planets():
     for planet in all_planets:
         response.append(planet.to_dict())
 
-
     return jsonify(response), 200 
 
-# @planet_bp.route("/<id>", methods=["GET"])
-# def get_one_planet(id):
-#     try:
-#         planet_id = int(id)
-#     except ValueError:
-#         return {"message": f"Invalid id: {id}"}, 400
+@planet_bp.route("/<planet_id>", methods=["GET"])
+def get_one_planet(planet_id):
+    planet = validate_planet(planet_id)
+
+    return planet.to_dict(), 200
+
+@planet_bp.route("/<planet_id>", methods=["PUT"])
+def update_planet(planet_id):
+    planet = validate_planet(planet_id)
+
+    request_data = request.get_json()
+
+    planet.name = request_data["name"]
+    planet.description = request_data["description"]
+    planet.moons = request_data["moons"]
+    planet.color = request_data["color"]
+
+    db.session.commit()
+
+    return {"msg": f"planet {planet_id} successfully updated"}, 200
+
+@planet_bp.route("/<planet_id>", methods=["DELETE"])
+def delete_planet(planet_id):
+    planet = validate_planet(planet_id)
+
+    db.session.delete(planet)
+    db.session.commit()
+
+    return {"msg": f"planet {planet_id} successfully deleted"}, 200
+
+def validate_planet(planet_id):
+    try:
+        planet_id = int(planet_id)
+    except ValueError:
+        return abort(make_response({"message": f"invalid id: {planet_id}"}, 400))
     
-#     for planet in planet_list:
-#         if planet.id == planet_id:
-#             return jsonify({
-#                 "id": planet.id,
-#                 "name": planet.name,
-#                 "description": planet.description,
-#                 "moons": planet.moons,
-#                 "color": planet.color
-#             }), 200
-#     return {"message": f"id {planet_id} not found"}, 404
-        
+    return Planet.query.get_or_404(planet_id)
