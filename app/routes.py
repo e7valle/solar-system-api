@@ -23,7 +23,13 @@ def add_planet():
 @planet_bp.route("", methods=["GET"])
 def get_planets():
     response = []
-    all_planets  = Planet.query.all()
+    name_query = request.args.get("name")
+
+    if name_query is None:
+        all_planets  = Planet.query.all()
+    else:
+        all_planets = Planet.query.filter_by(name=name_query)
+
     for planet in all_planets:
         response.append(planet.to_dict())
 
