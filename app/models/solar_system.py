@@ -16,7 +16,12 @@ class Planet(db.Model):
             "color": self.color
         }
 
+
+
     @classmethod
+    # youre creating yourself and returning yourself
+    # I'm putting all the data into the constructor.....
+
     def from_dict(cls, planet_data):
         return cls(
             name = planet_data["name"],
@@ -24,3 +29,8 @@ class Planet(db.Model):
             moons = planet_data["moons"],
             color = planet_data["color"] 
         )
+    
+    # planets = Planets.from_dict(planet_data)
+    # vs 
+    # planets_obj = Planets()
+    # planets = planets_obj.from_dict(planet_data)
